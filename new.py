@@ -789,6 +789,18 @@ def main():
                 st.session_state["messages"].append({"role": "ai", "text": success_msg})
 
                 st.success(success_msg)
+                # Provide a button to show the folder
+        show_folder_command = f'explorer.exe /select,"{video_path}"' if os.name == "nt" else f'open -R "{video_path}"'
+        st.button("📂 Show in Folder", on_click=lambda: os.system(show_folder_command))
+
+        # Provide a download button in the app
+        with open(video_path, "rb") as file:
+            st.download_button(
+                label="📥 Click to Download",
+                data=file,
+                file_name=video_filename,
+                mime="video/mp4"
+            )
 
         elif user_input.lower().startswith("create dashboard"):
             dashboard_description = user_input[len("create dashboard"):].strip() or "sales data"
