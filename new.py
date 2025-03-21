@@ -790,11 +790,11 @@ def main():
 
                 st.success(success_msg)
                 # Provide a button to show the folder
-        show_folder_command = f'explorer.exe /select,"{video_path}"' if os.name == "nt" else f'open -R "{video_path}"'
-        st.button("📂 Show in Folder", on_click=lambda: os.system(show_folder_command))
+                show_folder_command = f'explorer.exe /select,"{video_path}"' if os.name == "nt" else f'open -R "{video_path}"'
+                st.button("📂 Show in Folder", on_click=lambda: os.system(show_folder_command))
 
         # Provide a download button in the app
-        with open(video_path, "rb") as file:
+            with open(video_path, "rb") as file:
             st.download_button(
                 label="📥 Click to Download",
                 data=file,
