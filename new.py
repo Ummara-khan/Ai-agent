@@ -106,41 +106,28 @@ import yt_dlp
 import subprocess
 import platform
 
-def get_download_folder():
-    """Get the system Downloads folder automatically."""
-    return os.path.join(os.path.expanduser("~"), "Downloads")  # Works on all OS
-
-def open_downloads_folder():
-    """Open the Downloads folder after download."""
-    download_folder = get_download_folder()
-    if platform.system() == "Windows":
-        subprocess.run(["explorer", download_folder], shell=True)  # Windows
-    elif platform.system() == "Darwin":  # macOS
-        subprocess.run(["open", download_folder])
-    else:  # Linux
-        subprocess.run(["xdg-open", download_folder])
-
+# Function to download YouTube video
 def download_youtube_video(url):
-    """Download a YouTube video and save it in the system's Downloads folder."""
+    """Download YouTube video and provide a browser download link."""
     try:
-        download_folder = get_download_folder()
+        DOWNLOAD_FOLDER = "downloads"  # Temporary folder
+        os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)  # Ensure folder exists
+
         ydl_opts = {
-            'outtmpl': os.path.join(download_folder, '%(title)s.%(ext)s'),
+            'outtmpl': os.path.join(DOWNLOAD_FOLDER, '%(title)s.%(ext)s'),
             'quiet': False,
             'noplaylist': True,
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])  # Start download
+            info = ydl.extract_info(url, download=True)
+            video_filename = f"{info['title']}.{info['ext']}"
+            video_path = os.path.join(DOWNLOAD_FOLDER, video_filename)
 
-        print(f"✅ Video downloaded successfully in: {download_folder}")
-
-        # Open the Downloads folder
-        open_downloads_folder()
-
+        return video_path, video_filename
     except Exception as e:
-        print(f"❌ Error downloading video: {str(e)}")
-
+        st.error(f"❌ Error downloading video: {str(e)}")
+        return None, None
 
 
 
