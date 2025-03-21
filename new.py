@@ -101,70 +101,45 @@ import subprocess
 import platform
 import time
 
+import os
+import yt_dlp
+import subprocess
+import platform
+
 def get_download_folder():
-    """Get the system Downloads folder path."""
-    if platform.system() == "Windows":
-        return os.path.join(os.environ["USERPROFILE"], "Downloads")  # C:\Users\Username\Downloads
-    else:
-        return os.path.expanduser("~/Downloads")  # macOS/Linux
+    """Get the system Downloads folder automatically."""
+    return os.path.join(os.path.expanduser("~"), "Downloads")  # Works on all OS
 
 def open_downloads_folder():
-    """Open the Downloads folder in File Explorer after download."""
+    """Open the Downloads folder after download."""
+    download_folder = get_download_folder()
     if platform.system() == "Windows":
-        subprocess.run(["explorer", get_download_folder()], shell=True)  # Open Downloads folder
-    else:
-        subprocess.run(["open", get_download_folder()])  # macOS/Linux
-
-def send_windows_notification(title, message):
-    """Send a Windows notification when download completes."""
-    if platform.system() == "Windows":
-        try:
-            from plyer import notification
-            notification.notify(title=title, message=message, timeout=5)
-        except ImportError:
-            print("🔔 Install plyer (`pip install plyer`) for Windows notifications.")
+        subprocess.run(["explorer", download_folder], shell=True)  # Windows
+    elif platform.system() == "Darwin":  # macOS
+        subprocess.run(["open", download_folder])
+    else:  # Linux
+        subprocess.run(["xdg-open", download_folder])
 
 def download_youtube_video(url):
-    """Download a YouTube video and save it in the Windows Downloads folder."""
+    """Download a YouTube video and save it in the system's Downloads folder."""
     try:
         download_folder = get_download_folder()
         ydl_opts = {
-            'outtmpl': os.path.join(download_folder, '%(title)s.%(ext)s'),  # Save in Downloads
+            'outtmpl': os.path.join(download_folder, '%(title)s.%(ext)s'),
             'quiet': False,
             'noplaylist': True,
-            'progress_hooks': [show_download_progress],  # Show progress
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=True)  # Get video info
-            video_filename = f"{info['title']}.{info['ext']}"
-            video_path = os.path.join(download_folder, video_filename)
+            ydl.download([url])  # Start download
 
-        print(f"✅ Video downloaded: {video_filename}")
-        print(f"📂 Saved in: {download_folder}")
-
-        # Show Windows notification
-        send_windows_notification("Download Complete", f"Video saved: {video_filename}")
+        print(f"✅ Video downloaded successfully in: {download_folder}")
 
         # Open the Downloads folder
         open_downloads_folder()
 
-        return video_path
     except Exception as e:
         print(f"❌ Error downloading video: {str(e)}")
-        return None
-
-def show_download_progress(d):
-    """Show download progress like a browser download."""
-    if d['status'] == 'downloading':
-        percent = d['_percent_str']
-        speed = d['_speed_str']
-        eta = d.get('eta', '?')
-        print(f"📥 Downloading: {percent} | Speed: {speed} | ETA: {eta}s")
-    elif d['status'] == 'finished':
-        print("✅ Download complete!")
-
-
 
 
 
