@@ -98,17 +98,35 @@ import os
 import yt_dlp
 import streamlit as st
 
+import os
+import yt_dlp
+import streamlit as st
+import subprocess
+import platform
+
+def get_download_folder():
+    """Get the default Downloads folder on Windows."""
+    if platform.system() == "Windows":
+        return os.path.join(os.environ["USERPROFILE"], "Downloads")  # C:\Users\Username\Downloads
+    else:
+        return os.path.expanduser("~/Downloads")  # For Mac/Linux users
+
+def open_downloads_folder():
+    """Open the Downloads folder in File Explorer after download."""
+    if platform.system() == "Windows":
+        subprocess.run(["explorer", get_download_folder()], shell=True)  # Open the folder in Windows
+    else:
+        subprocess.run(["open", get_download_folder()])  # Mac/Linux
+
 def download_youtube_video(url):
-    """Download a YouTube video and save it in the system's Downloads folder."""
+    """Download a YouTube video and ensure it saves in the Windows Downloads folder."""
     try:
-        # Get the system's Downloads folder
-        download_folder = os.path.join(os.path.expanduser("~"), "Downloads")
-        
+        download_folder = get_download_folder()
         ydl_opts = {
-            'outtmpl': os.path.join(download_folder, '%(title)s.%(ext)s'),
+            'outtmpl': os.path.join(download_folder, '%(title)s.%(ext)s'),  # Save in Downloads
             'quiet': False,
             'noplaylist': True,
-            'progress_hooks': [show_download_progress],  # Show progress
+            'progress_hooks': [show_download_progress],  # Show download progress
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -116,6 +134,10 @@ def download_youtube_video(url):
 
         success_msg = f"✅ Video downloaded successfully in `{download_folder}`."
         st.session_state.chat_log.append(("🎥 Download", success_msg))
+
+        # Open the downloads folder so the user sees the file
+        open_downloads_folder()
+
         return success_msg
     except Exception as e:
         error_msg = f"❌ Error downloading video: {str(e)}"
@@ -128,6 +150,7 @@ def show_download_progress(d):
         st.write(f"📥 Downloading: {d['_percent_str']} ({d['_speed_str']})")
     elif d['status'] == 'finished':
         st.write("✅ Download complete!")
+
 
 
 
