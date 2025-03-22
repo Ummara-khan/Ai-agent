@@ -138,23 +138,7 @@ def research_query(user_query):
         st.session_state.chat_log.append(("⚠️ Error", error_msg))
         return error_msg
 
-
-
-import os
 import re
-import yt_dlp
-import shutil
-import streamlit as st
-import webbrowser
-
-def is_ffmpeg_installed():
-    """Check if ffmpeg is installed and accessible in PATH."""
-    return shutil.which("ffmpeg") is not None
-
-def extract_url(user_input):
-    """Extracts the URL from the input text if it matches the expected format."""
-    match = re.search(r"download this (https?://\S+)", user_input, re.IGNORECASE)
-    return match.group(1) if match else None
 
 def download_youtube_video(video_url):
     try:
@@ -185,6 +169,27 @@ def download_youtube_video(video_url):
     except Exception as e:
         st.error(f"❌ Error: {e}")
 
+
+
+def is_ffmpeg_installed():
+    """Check if ffmpeg is installed and accessible in PATH."""
+    return shutil.which("ffmpeg") is not None
+
+def extract_url(user_input):
+    """Extracts the URL from the input text if it matches the expected format."""
+    match = re.search(r"download this (https?://\S+)", user_input, re.IGNORECASE)
+    return match.group(1) if match else None
+
+
+
+def process_input(user_input):
+    """Processes user input to perform the appropriate action."""
+    if user_input.lower().startswith("download this"):
+        video_url = extract_url(user_input)
+        if video_url:
+            download_youtube_video(video_url)
+        else:
+            st.warning("⚠️ Please enter a valid command in the format: 'Download this [URL]'.")
 
 
 
@@ -830,10 +835,7 @@ def main():
             else:
                 response = "⚠️ Invalid GitHub URL."
 
-        elif user_input.lower().startswith("download this"):
-          video_url = extract_url(user_input)
-        if video_url:
-            download_youtube_video(video_url)
+      
 
 
             
