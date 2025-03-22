@@ -182,14 +182,8 @@ def extract_url(user_input):
 
 
 
-def process_input(user_input):
     """Processes user input to perform the appropriate action."""
-    if user_input.lower().startswith("download this"):
-        video_url = extract_url(user_input)
-        if video_url:
-            download_youtube_video(video_url)
-        else:
-            st.warning("⚠️ Please enter a valid command in the format: 'Download this [URL]'.")
+    
 
 
 
@@ -790,6 +784,15 @@ def main():
       
         # Process user command
         response = ""
+
+
+        if user_input.lower().startswith("download this"):
+         video_url = extract_url(user_input)
+        if video_url:
+            download_youtube_video(video_url)
+        else:
+            st.warning("⚠️ Please enter a valid command in the format: 'Download this [URL]'.")
+
         if user_input.lower().startswith("transcribe this"):
             file_path = st.session_state.get("last_uploaded_file")
             if file_path:
@@ -803,6 +806,10 @@ def main():
                     response = "⚠️ No valid file found after extraction."
             else:
                 response = "⚠️ No file uploaded. Please upload an audio/video file first."
+
+
+
+                
 
         elif user_input.lower().startswith("send msg to "):
             email_part = user_input[len("send msg to "):].strip()
