@@ -788,7 +788,7 @@ def main():
 
         if user_input.lower().startswith("download this"):
          video_url = extract_url(user_input)
-        if video_url:
+         if video_url:
             download_youtube_video(video_url)
             st.success(f"✅ Download complete! Check your Downloads folder.")
             
