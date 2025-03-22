@@ -899,7 +899,7 @@ def main():
             st.session_state["messages"].append({"role": "ai", "text": response})
 
         # Rerun the app to update UI instantly
-        st.rerun()
+        
 
 if __name__ == "__main__":
     main()
