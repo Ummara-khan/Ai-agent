@@ -451,14 +451,23 @@ import os
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
-# Use a relative path
-SERVICE_ACCOUNT_FILE = os.path.join(os.getcwd(), "config/gen-lang-client-0235091091-c6906a6ce022.json")
+import os
+from dotenv import load_dotenv
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+
+# Load environment variables from .env
+load_dotenv()
+
+# Get the JSON file path from the environment variable
+SERVICE_ACCOUNT_FILE = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
 
 def authenticate_google_account():
     creds = service_account.Credentials.from_service_account_file(
         SERVICE_ACCOUNT_FILE, scopes=['https://www.googleapis.com/auth/calendar']
     )
     return build('calendar', 'v3', credentials=creds)
+
 
 # Function to schedule an event
 def schedule_event(event_details):
