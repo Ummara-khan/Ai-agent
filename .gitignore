@@ -1,0 +1,4 @@
+echo "config/gen-lang-client-0235091091-c6906a6ce022.json" >> .gitignore
+git add .gitignore
+git commit -m "Ignore service account file"
+git push
