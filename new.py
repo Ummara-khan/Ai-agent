@@ -140,9 +140,17 @@ def research_query(user_query):
 
 import re
 
+
 def is_ffmpeg_installed():
-    """Check if FFmpeg is installed."""
-    return os.system("ffmpeg -version") == 0
+    """Check if ffmpeg is installed and accessible in PATH."""
+    return shutil.which("ffmpeg") is not None
+
+def extract_url(user_input):
+    """Extracts the URL from the input text if it matches the expected format."""
+    match = re.search(r"download this (https?://\S+)", user_input, re.IGNORECASE)
+    return match.group(1) if match else None
+
+
 
 def download_youtube_video(video_url):
     try:
@@ -150,38 +158,28 @@ def download_youtube_video(video_url):
             st.error("❌ Error: `ffmpeg` is not installed or not in PATH. Please install it.")
             return
 
-        # Set temporary filename
-        download_path = "video.mp4"
+        # Get the default Downloads directory
+        download_path = os.path.join(os.path.expanduser("~"), "Downloads")
 
-        # yt-dlp options
+        # yt-dlp options for downloading a single video
         ydl_opts = {
-            'outtmpl': download_path,  # Save as video.mp4 in working directory
-            'format': 'bestvideo+bestaudio/best',
-            'merge_output_format': 'mp4',
-            'noplaylist': True,
+            'outtmpl': os.path.join(download_path, '%(title)s.%(ext)s'),  # Save as Title.mp4
+            'format': 'bestvideo+bestaudio/best',  # Best available quality
+            'merge_output_format': 'mp4',  # Save in MP4 format
+            'noplaylist': True,  # Ensure only the single video is downloaded
             'quiet': False
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([video_url])
 
-        # Provide download link for browser
-        with open(download_path, "rb") as file:
-            video_data = file.read()
+        # Open the Downloads folder after download
+        webbrowser.open(download_path)
 
-        st.success("✅ Download complete! Click below to save the file.")
-        
-        st.download_button(
-            label="📥 Download Video",
-            data=video_data,
-            file_name="youtube_video.mp4",
-            mime="video/mp4"
-        )
+        st.success(f"✅ Download complete! Check your Downloads folder.")
 
     except Exception as e:
         st.error(f"❌ Error: {e}")
-
-
 
 
 
