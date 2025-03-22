@@ -140,9 +140,21 @@ def research_query(user_query):
 
 
 
+import os
+import re
+import yt_dlp
+import shutil
+import streamlit as st
+import webbrowser
+
 def is_ffmpeg_installed():
     """Check if ffmpeg is installed and accessible in PATH."""
     return shutil.which("ffmpeg") is not None
+
+def extract_url(user_input):
+    """Extracts the URL from the input text if it matches the expected format."""
+    match = re.search(r"download this (https?://\S+)", user_input, re.IGNORECASE)
+    return match.group(1) if match else None
 
 def download_youtube_video(video_url):
     try:
@@ -172,6 +184,7 @@ def download_youtube_video(video_url):
 
     except Exception as e:
         st.error(f"❌ Error: {e}")
+
 
 
 
@@ -817,27 +830,13 @@ def main():
             else:
                 response = "⚠️ Invalid GitHub URL."
 
-        elif user_input.lower().startswith("download this "):
-            video_url = user_input[len("download this "):].strip()
+        elif user_input.lower().startswith("download this"):
+          video_url = extract_url(user_input)
+        if video_url:
+            download_youtube_video(video_url)
 
 
-            if video_url:
-                downloading_msg = "⏳ Downloading video..."
-                st.session_state["messages"].append({"role": "ai", "text": downloading_msg})
-
-                with st.spinner("⏳ Downloading..."):
-                    download_result = download_youtube_video(video_url)
-
-                    if download_result is True:
-                        success_msg = "✅ Video downloaded successfully! Check your Downloads folder."
-                        st.session_state["messages"].append({"role": "ai", "text": success_msg})
-                        st.success(success_msg)
-                    else:
-                        error_msg = download_result
-                        st.session_state["messages"].append({"role": "ai", "text": error_msg})
-                        st.error(error_msg)
-            else:
-                st.warning("⚠️ Please enter a valid YouTube video URL.")
+            
 
             
 
