@@ -447,11 +447,13 @@ load_dotenv()
 # Load the service account credentials
 import os
 
-SERVICE_ACCOUNT_FILE = "/mount/src/ai-agent/config/gen-lang-client-0235091091-c6906a6ce022.json"
+import os
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
 
+# Use a relative path
+SERVICE_ACCOUNT_FILE = os.path.join(os.getcwd(), "config/gen-lang-client-0235091091-c6906a6ce022.json")
 
-
-# Authenticate Google Calendar API
 def authenticate_google_account():
     creds = service_account.Credentials.from_service_account_file(
         SERVICE_ACCOUNT_FILE, scopes=['https://www.googleapis.com/auth/calendar']
