@@ -1,4 +1,7 @@
 import openai
+from datetime import datetime
+from timezonefinder import TimezoneFinder
+import geopy.geocoders
 import streamlit as st
 import os
 import subprocess
@@ -11,6 +14,7 @@ from datetime import datetime
 from pydub import AudioSegment
 import tempfile
 import sounddevice as sd
+import webbrowser
 import numpy as np
 import tempfile
 import os
@@ -62,20 +66,63 @@ if "chat_log" not in st.session_state:
 
 
 
-
+# Create a directory for downloads
+DOWNLOAD_DIR = "downloads"
+os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
 # Session state to store messages
 if "chat_log" not in st.session_state:
     st.session_state.chat_log = []
 
 
+import openai
+import streamlit as st
+import pytz
+from datetime import datetime
+from timezonefinder import TimezoneFinder
+import geopy.geocoders
+
+geolocator = geopy.geocoders.Nominatim(user_agent="timezone_finder")
+tf = TimezoneFinder()
+
+def get_current_time(location):
+    try:
+        # Get the latitude and longitude of the location
+        geo_info = geolocator.geocode(location)
+        if not geo_info:
+            return f"Sorry, I couldn't find the timezone for '{location}'."
+
+        # Get timezone from coordinates
+        timezone_str = tf.timezone_at(lng=geo_info.longitude, lat=geo_info.latitude)
+        if not timezone_str:
+            return f"Sorry, I couldn't determine the timezone for '{location}'."
+
+        # Get the current time in that timezone
+        timezone = pytz.timezone(timezone_str)
+        current_time = datetime.now(timezone)
+
+        # Format the time response
+        time_str = current_time.strftime('%Y-%m-%d %H:%M:%S %Z%z')
+        return f"The current time in {location.capitalize()} is {time_str}."
+
+    except Exception as e:
+        return f"An error occurred: {str(e)}"
+
 def research_query(user_query):
-    """Fetch research-based responses from OpenAI's GPT model."""
+    """Fetch research-based responses from OpenAI's GPT model, with time zone support."""
     if not openai.api_key:
         st.error("❌ OpenAI API key is missing.")
         return
 
     st.session_state.chat_log.append(("🧠 You", user_query))  # Log user query
+
+    # Check if user is asking about time in a specific place
+    if any(keyword in user_query.lower() for keyword in ["what time is it", "current time in"]):
+        location = user_query.split("in")[-1].strip()  # Extract location after "in"
+        if location:
+            answer = get_current_time(location)
+            st.session_state.chat_log.append(("⏰ AI", answer))  # Log AI response
+            return answer
 
     try:
         response = openai.ChatCompletion.create(
@@ -92,42 +139,40 @@ def research_query(user_query):
         return error_msg
 
 
-import os
-import yt_dlp
-import streamlit as st
-import os
-import yt_dlp
-import subprocess
-import platform
-import time
 
-import os
-import yt_dlp
-import subprocess
-import platform
+def is_ffmpeg_installed():
+    """Check if ffmpeg is installed and accessible in PATH."""
+    return shutil.which("ffmpeg") is not None
 
-# Function to download YouTube video
-def download_youtube_video(url):
-    """Download YouTube video and provide a browser download link."""
+def download_youtube_video(video_url):
     try:
-        DOWNLOAD_FOLDER = "downloads"  # Temporary folder
-        os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)  # Ensure folder exists
+        if not is_ffmpeg_installed():
+            st.error("❌ Error: `ffmpeg` is not installed or not in PATH. Please install it.")
+            return
 
+        # Get the default Downloads directory
+        download_path = os.path.join(os.path.expanduser("~"), "Downloads")
+
+        # yt-dlp options for downloading a single video
         ydl_opts = {
-            'outtmpl': os.path.join(DOWNLOAD_FOLDER, '%(title)s.%(ext)s'),
-            'quiet': False,
-            'noplaylist': True,
+            'outtmpl': os.path.join(download_path, '%(title)s.%(ext)s'),  # Save as Title.mp4
+            'format': 'bestvideo+bestaudio/best',  # Best available quality
+            'merge_output_format': 'mp4',  # Save in MP4 format
+            'noplaylist': True,  # Ensure only the single video is downloaded
+            'quiet': False
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=True)
-            video_filename = f"{info['title']}.{info['ext']}"
-            video_path = os.path.join(DOWNLOAD_FOLDER, video_filename)
+            ydl.download([video_url])
 
-        return video_path, video_filename
+        # Open the Downloads folder after download
+        webbrowser.open(download_path)
+
+        st.success(f"✅ Download complete! Check your Downloads folder.")
+
     except Exception as e:
-        st.error(f"❌ Error downloading video: {str(e)}")
-        return None, None
+        st.error(f"❌ Error: {e}")
+
 
 
 
@@ -387,9 +432,13 @@ def send_email(to_email, subject, body):
 load_dotenv()
 
 # Get service account file path from environment variable
+# Load the service account credentials
 SERVICE_ACCOUNT_FILE = os.getenv("SERVICE_ACCOUNT_FILE")
 
-# Authenticate using the service account
+if not SERVICE_ACCOUNT_FILE:
+    raise ValueError("SERVICE_ACCOUNT_FILE environment variable is not set!")
+
+# Authenticate Google Calendar API
 def authenticate_google_account():
     creds = service_account.Credentials.from_service_account_file(
         SERVICE_ACCOUNT_FILE, scopes=['https://www.googleapis.com/auth/calendar']
@@ -404,9 +453,6 @@ def schedule_event(event_details):
         'summary': event_details['title'],
         'location': event_details.get('location', ''),
         'description': event_details.get('description', ''),
-
-
-
         'start': {
             'dateTime': event_details['start_time'].isoformat(),
             'timeZone': 'America/Los_Angeles',
@@ -427,10 +473,6 @@ def schedule_event(event_details):
     except Exception as e:
         print(f"❌ Error scheduling event: {str(e)}")
         return f"❌ Error: {str(e)}"
-
-
-
-
 
 
 
@@ -778,11 +820,6 @@ def main():
             else:
                 response = "⚠️ Invalid GitHub URL."
 
-
-
-
-
-
         elif user_input.lower().startswith("download this "):
             video_url = user_input[len("download this "):].strip()
             downloading_msg = "⏳ Downloading video..."
@@ -794,18 +831,6 @@ def main():
                 st.session_state["messages"].append({"role": "ai", "text": success_msg})
 
                 st.success(success_msg)
-                # Provide a button to show the folder
-                show_folder_command = f'explorer.exe /select,"{video_path}"' if os.name == "nt" else f'open -R "{video_path}"'
-            st.button("📂 Show in Folder", on_click=lambda: os.system(show_folder_command))
-
-        # Provide a download button in the app
-            with open(video_path, "rb") as file:
-            st.download_button(
-                label="📥 Click to Download",
-                data=file,
-                file_name=video_filename,
-                mime="video/mp4"
-            )
 
         elif user_input.lower().startswith("create dashboard"):
             dashboard_description = user_input[len("create dashboard"):].strip() or "sales data"
