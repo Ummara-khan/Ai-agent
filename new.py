@@ -151,19 +151,19 @@ def extract_url(user_input):
     return match.group(1) if match else None
 
 
-
 def download_youtube_video(video_url):
     try:
         if not is_ffmpeg_installed():
             st.error("❌ Error: `ffmpeg` is not installed or not in PATH. Please install it.")
             return
 
-        # Get the default Downloads directory
-        download_path = os.path.join(os.path.expanduser("~"), "Downloads")
+        # Define temporary download directory in Streamlit Cloud
+        temp_dir = "downloads"
+        os.makedirs(temp_dir, exist_ok=True)
 
         # yt-dlp options for downloading a single video
         ydl_opts = {
-            'outtmpl': os.path.join(download_path, '%(title)s.%(ext)s'),  # Save as Title.mp4
+            'outtmpl': os.path.join(temp_dir, '%(title)s.%(ext)s'),  # Save as Title.mp4
             'format': 'bestvideo+bestaudio/best',  # Best available quality
             'merge_output_format': 'mp4',  # Save in MP4 format
             'noplaylist': True,  # Ensure only the single video is downloaded
@@ -171,16 +171,17 @@ def download_youtube_video(video_url):
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([video_url])
-
-        # Open the Downloads folder after download
-        webbrowser.open(download_path)
-
-        st.success(f"✅ Download complete! Check your Downloads folder.")
+            info_dict = ydl.extract_info(video_url, download=True)
+            filename = ydl.prepare_filename(info_dict).replace(".webm", ".mp4")  # Adjust extension if needed
+        
+        st.success("✅ Download complete!")
+        
+        # Provide a download button for the user
+        with open(filename, "rb") as file:
+            st.download_button(label="📥 Click to Download", data=file, file_name=os.path.basename(filename), mime="video/mp4")
 
     except Exception as e:
         st.error(f"❌ Error: {e}")
-
 
 
 if "chat_log" not in st.session_state:
