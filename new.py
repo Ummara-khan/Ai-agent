@@ -140,6 +140,15 @@ def research_query(user_query):
 
 import re
 
+import os
+import yt_dlp
+import webbrowser
+import streamlit as st
+
+def is_ffmpeg_installed():
+    """Check if FFmpeg is installed by running a command."""
+    return os.system("ffmpeg -version") == 0
+
 def download_youtube_video(video_url):
     try:
         if not is_ffmpeg_installed():
@@ -155,21 +164,24 @@ def download_youtube_video(video_url):
             'format': 'bestvideo+bestaudio/best',  # Best available quality
             'merge_output_format': 'mp4',  # Save in MP4 format
             'noplaylist': True,  # Ensure only the single video is downloaded
-            'quiet': False
+            'quiet': False,  # Show download progress
+            'keepvideo': True,  # Keep original video/audio files
+            'progress_hooks': [lambda d: st.write(f"📥 Status: {d['status']} - {d.get('filename', '')}")],  # Live status updates
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([video_url])
 
+        # Get the final filename
+        downloaded_file = os.path.join(download_path, f"{video_url.split('=')[-1]}.mp4")
+        
         # Open the Downloads folder after download
         webbrowser.open(download_path)
 
-        st.success(f"✅ Download complete! Check your Downloads folder.")
+        st.success(f"✅ Download complete! File saved at: {download_path}")
 
     except Exception as e:
         st.error(f"❌ Error: {e}")
-
-
 
 def is_ffmpeg_installed():
     """Check if ffmpeg is installed and accessible in PATH."""
