@@ -140,13 +140,8 @@ def research_query(user_query):
 
 import re
 
-import os
-import yt_dlp
-import webbrowser
-import streamlit as st
-
 def is_ffmpeg_installed():
-    """Check if FFmpeg is installed by running a command."""
+    """Check if FFmpeg is installed."""
     return os.system("ffmpeg -version") == 0
 
 def download_youtube_video(video_url):
@@ -155,47 +150,36 @@ def download_youtube_video(video_url):
             st.error("❌ Error: `ffmpeg` is not installed or not in PATH. Please install it.")
             return
 
-        # Get the default Downloads directory
-        download_path = os.path.join(os.path.expanduser("~"), "Downloads")
+        # Set temporary filename
+        download_path = "video.mp4"
 
-        # yt-dlp options for downloading a single video
+        # yt-dlp options
         ydl_opts = {
-            'outtmpl': os.path.join(download_path, '%(title)s.%(ext)s'),  # Save as Title.mp4
-            'format': 'bestvideo+bestaudio/best',  # Best available quality
-            'merge_output_format': 'mp4',  # Save in MP4 format
-            'noplaylist': True,  # Ensure only the single video is downloaded
-            'quiet': False,  # Show download progress
-            'keepvideo': True,  # Keep original video/audio files
-            'progress_hooks': [lambda d: st.write(f"📥 Status: {d['status']} - {d.get('filename', '')}")],  # Live status updates
+            'outtmpl': download_path,  # Save as video.mp4 in working directory
+            'format': 'bestvideo+bestaudio/best',
+            'merge_output_format': 'mp4',
+            'noplaylist': True,
+            'quiet': False
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([video_url])
 
-        # Get the final filename
-        downloaded_file = os.path.join(download_path, f"{video_url.split('=')[-1]}.mp4")
-        
-        # Open the Downloads folder after download
-        webbrowser.open(download_path)
+        # Provide download link for browser
+        with open(download_path, "rb") as file:
+            video_data = file.read()
 
-        st.success(f"✅ Download complete! File saved at: {download_path}")
+        st.success("✅ Download complete! Click below to save the file.")
+        
+        st.download_button(
+            label="📥 Download Video",
+            data=video_data,
+            file_name="youtube_video.mp4",
+            mime="video/mp4"
+        )
 
     except Exception as e:
         st.error(f"❌ Error: {e}")
-
-def is_ffmpeg_installed():
-    """Check if ffmpeg is installed and accessible in PATH."""
-    return shutil.which("ffmpeg") is not None
-
-def extract_url(user_input):
-    """Extracts the URL from the input text if it matches the expected format."""
-    match = re.search(r"download this (https?://\S+)", user_input, re.IGNORECASE)
-    return match.group(1) if match else None
-
-
-
-    """Processes user input to perform the appropriate action."""
-    
 
 
 
