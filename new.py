@@ -458,7 +458,7 @@ from googleapiclient.discovery import build
 
 # Load environment variables from .env
 load_dotenv()
-SERVICE_ACCOUNT_FILE = "config/gen-lang-client-0235091091-c6906a6ce022"
+SERVICE_ACCOUNT_FILE = "config/gen-lang-client-0235091091-c6906a6ce022.json"
 
 
 def authenticate_google_account():
