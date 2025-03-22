@@ -836,6 +836,7 @@ def main():
                 email_address, message = email_part.split(' ', 1)
                 with st.spinner(f"⏳ Sending message to {email_address}..."):
                     response = send_email(email_address, "Your Subject Here", message)
+                    st.success(response)
             else:
                 response = "Invalid email format or missing message."
 
