@@ -447,8 +447,8 @@ load_dotenv()
 # Load the service account credentials
 import os
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Get current directory
-SERVICE_ACCOUNT_FILE = os.path.join(BASE_DIR, "config", "gen-lang-client-0235091091-c6906a6ce022.json")
+SERVICE_ACCOUNT_FILE = "/mount/src/ai-agent/config/gen-lang-client-0235091091-c6906a6ce022.json"
+
 
 
 # Authenticate Google Calendar API
