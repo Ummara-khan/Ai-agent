@@ -792,10 +792,9 @@ def main():
             download_youtube_video(video_url)
             st.success(f"✅ Download complete! Check your Downloads folder.")
             
-        else:
-            st.warning("⚠️ Please enter a valid command in the format: 'Download this [URL]'.")
+      
 
-        if user_input.lower().startswith("transcribe this"):
+        elif user_input.lower().startswith("transcribe this"):
             file_path = st.session_state.get("last_uploaded_file")
             if file_path:
                 if file_path.endswith((".mp4", ".mov", ".avi", ".mpeg4")):
