@@ -419,24 +419,22 @@ def send_email(to_email, subject, body):
     from_email = "ummarakhan60@gmail.com"  # Replace with your email
     app_password = "horf ybfy fwsn czxr"  # Replace with your application-specific password
 
-    # Setting up the MIME
     msg = MIMEMultipart()
     msg['From'] = from_email
     msg['To'] = to_email
     msg['Subject'] = subject
     msg.attach(MIMEText(body, 'plain'))
 
-    # Establishing the connection with the SMTP server
     try:
-        server = smtplib.SMTP('smtp.gmail.com', 587)  # You can use another SMTP server if needed
-        server.starttls()  # Secure the connection
-        server.login(from_email, app_password)  # Login using the app-specific password
-        text = msg.as_string()
-        server.sendmail(from_email, to_email, text)
-        server.quit()  # Logout from the server
-        return "Message sent successfully!"
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(from_email, app_password)
+        server.sendmail(from_email, to_email, msg.as_string())
+        server.quit()
+        return "✅ Message sent successfully!"
     except Exception as e:
-        return f"Error: {str(e)}"
+        return f"❌ Error: {str(e)}"
+
         
 
 
