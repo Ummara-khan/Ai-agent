@@ -790,6 +790,8 @@ def main():
          video_url = extract_url(user_input)
         if video_url:
             download_youtube_video(video_url)
+            st.success(f"✅ Download complete! Check your Downloads folder.")
+            
         else:
             st.warning("⚠️ Please enter a valid command in the format: 'Download this [URL]'.")
 
