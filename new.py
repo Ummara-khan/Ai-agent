@@ -433,10 +433,8 @@ load_dotenv()
 
 # Get service account file path from environment variable
 # Load the service account credentials
-SERVICE_ACCOUNT_FILE = os.getenv("SERVICE_ACCOUNT_FILE")
-
-if not SERVICE_ACCOUNT_FILE:
-    raise ValueError("SERVICE_ACCOUNT_FILE environment variable is not set!")
+# Load the service account credentials
+SERVICE_ACCOUNT_FILE = r"C:\Users\dell\Music\new-_agent-main\config\gen-lang-client-0235091091-c6906a6ce022.json"
 
 # Authenticate Google Calendar API
 def authenticate_google_account():
