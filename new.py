@@ -433,7 +433,6 @@ load_dotenv()
 
 # Get service account file path from environment variable
 # Load the service account credentials
-# Load the service account credentials
 SERVICE_ACCOUNT_FILE = r"C:\Users\dell\Music\new-_agent-main\config\gen-lang-client-0235091091-c6906a6ce022.json"
 
 # Authenticate Google Calendar API
@@ -820,15 +819,27 @@ def main():
 
         elif user_input.lower().startswith("download this "):
             video_url = user_input[len("download this "):].strip()
-            downloading_msg = "⏳ Downloading video..."
-            st.session_state["messages"].append({"role": "ai", "text": downloading_msg})
-            with st.spinner("⏳ Downloading..."):
-                download_result = download_youtube_video(video_url)
-                # Update the UI once the video is downloaded
-                success_msg = "✅ Video downloaded successfully!"
-                st.session_state["messages"].append({"role": "ai", "text": success_msg})
 
-                st.success(success_msg)
+
+            if video_url:
+                downloading_msg = "⏳ Downloading video..."
+                st.session_state["messages"].append({"role": "ai", "text": downloading_msg})
+
+                with st.spinner("⏳ Downloading..."):
+                    download_result = download_youtube_video(video_url)
+
+                    if download_result is True:
+                        success_msg = "✅ Video downloaded successfully! Check your Downloads folder."
+                        st.session_state["messages"].append({"role": "ai", "text": success_msg})
+                        st.success(success_msg)
+                    else:
+                        error_msg = download_result
+                        st.session_state["messages"].append({"role": "ai", "text": error_msg})
+                        st.error(error_msg)
+            else:
+                st.warning("⚠️ Please enter a valid YouTube video URL.")
+
+            
 
         elif user_input.lower().startswith("create dashboard"):
             dashboard_description = user_input[len("create dashboard"):].strip() or "sales data"
