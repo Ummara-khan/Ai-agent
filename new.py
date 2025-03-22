@@ -779,7 +779,7 @@ def main():
 
 
     # User input
-    user_input = st.chat_input("📝 Type your command:")
+    user_input = st.chat_input("📝 Type your command:",key = 'user_input')
 
     if user_input:
         # Store user message and display instantly
